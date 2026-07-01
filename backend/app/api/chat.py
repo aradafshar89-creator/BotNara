@@ -1,3 +1,4 @@
+from app.services.intent_service import detect_intent
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -16,9 +17,9 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 def chat(req: ChatRequest):
 
-    message = req.message.lower()
+    intent = detect_intent(req.message)
 
-    if "کم فروش" in message or "کم‌فروش" in message:
+    if intent == "WORST_PRODUCT":
 
         worst = get_worst_product()
 
@@ -42,7 +43,7 @@ def chat(req: ChatRequest):
     return {
         "reply": ask_gpt(prompt)
     }
-    if "پرفروش" in message or "محصول" in message:
+    if intent == "TOP_PRODUCT":
 
         top = get_top_products(1)[0]
 
