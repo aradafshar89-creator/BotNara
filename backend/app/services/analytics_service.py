@@ -137,3 +137,29 @@ def get_top_products(limit=10):
         }
         for name, amount in result[:limit]
     ]
+def get_worst_product():
+
+    db = SessionLocal()
+
+    try:
+
+        result = (
+            db.query(
+                Sale.product,
+                func.sum(Sale.sale_amount).label("sales")
+            )
+            .group_by(Sale.product)
+            .order_by(func.sum(Sale.sale_amount).asc())
+            .first()
+        )
+
+        if not result:
+            return None
+
+        return {
+            "product": result.product,
+            "sales": result.sales
+        }
+
+    finally:
+        db.close()

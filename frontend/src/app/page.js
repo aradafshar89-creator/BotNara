@@ -15,16 +15,16 @@ import {
 export default function Home() {
 
   const [uploads, setUploads] = useState([]);
-
   const [monthlySales, setMonthlySales] = useState([]);
-
   const [topCustomers, setTopCustomers] = useState([]);
-
   const [topProducts, setTopProducts] = useState([]);
-
   const [profit, setProfit] = useState(null);
 
   const [file, setFile] = useState(null);
+
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const loadData = async () => {
 
@@ -45,12 +45,10 @@ export default function Home() {
       const monthlyData = await monthlyRes.json();
 
       setMonthlySales(
-        Object.entries(monthlyData).map(
-          ([month, sales]) => ({
-            month,
-            sales,
-          })
-        )
+        Object.entries(monthlyData).map(([month, sales]) => ({
+          month,
+          sales,
+        }))
       );
 
       const customersRes = await fetch(
@@ -78,6 +76,42 @@ export default function Home() {
     }
 
   };
+const askBot = async () => {
+
+    if (!question.trim()) return;
+
+    setLoading(true);
+
+    try {
+
+      const res = await fetch(
+        "http://localhost:8000/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: question,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      setAnswer(data.reply);
+
+    } catch (err) {
+
+      console.error(err);
+
+      setAnswer("خطا در ارتباط با BotNara");
+
+    }
+
+    setLoading(false);
+
+  };
 
   useEffect(() => {
 
@@ -100,17 +134,11 @@ export default function Home() {
     formData.append("file", file);
 
     const res = await fetch(
-
       "http://localhost:8000/api/upload",
-
       {
-
         method: "POST",
-
         body: formData,
-
       }
-
     );
 
     if (res.ok) {
@@ -129,203 +157,122 @@ export default function Home() {
 
   };
 
-  const totalSales =
-    uploads.reduce(
-      (sum, item) => sum + item.total_sales,
-      0
-    );
+  const totalSales = uploads.reduce(
+    (sum, item) => sum + item.total_sales,
+    0
+  );
 
-  const totalOrders =
-    uploads.reduce(
-      (sum, item) => sum + item.total_orders,
-      0
-    );
+  const totalOrders = uploads.reduce(
+    (sum, item) => sum + item.total_orders,
+    0
+  );
 
   const chartData = uploads.map((item) => ({
-
     name: item.filename,
-
     sales: item.total_sales,
-
   }));
-return (
+
+  return (
 
     <main className="p-10 bg-gray-50 min-h-screen">
-
-      <h1 className="text-4xl font-bold mb-8">
-
+<h1 className="text-4xl font-bold mb-8">
         🚀 BotNara Dashboard
-
       </h1>
 
-      <div className="grid grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-4 gap-4 mb-8">
 
         <div className="bg-white rounded-xl shadow p-5">
-
-          <h3 className="font-bold mb-2">📁 فایل‌ها</h3>
-
+          <h3 className="font-bold">📁 فایل‌ها</h3>
           <p className="text-3xl">{uploads.length}</p>
-
         </div>
 
         <div className="bg-white rounded-xl shadow p-5">
-
-          <h3 className="font-bold mb-2">💰 فروش کل</h3>
-
+          <h3 className="font-bold">💰 فروش کل</h3>
           <p className="text-3xl">
-
-            {totalSales.toLocaleString()}
-
+            {Number(totalSales).toLocaleString()}
           </p>
-
         </div>
 
         <div className="bg-white rounded-xl shadow p-5">
-
-          <h3 className="font-bold mb-2">🛒 سفارش‌ها</h3>
-
-          <p className="text-3xl">
-
-            {totalOrders}
-
-          </p>
-
+          <h3 className="font-bold">🛒 سفارش‌ها</h3>
+          <p className="text-3xl">{totalOrders}</p>
         </div>
 
         <div className="bg-white rounded-xl shadow p-5">
-
-          <h3 className="font-bold mb-2">
-
+          <h3 className="font-bold">
             👤 مشتری برتر
-
           </h3>
-
           <p className="text-xl">
-
             {uploads[0]?.top_customer || "-"}
-
           </p>
-
         </div>
 
       </div>
 
       {profit && (
 
-        <div className="grid grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-4 gap-4 mb-8">
 
-          <div className="bg-green-100 rounded-xl p-5 shadow">
-
+          <div className="bg-green-100 rounded-xl p-5">
             <h3>💵 سود کل</h3>
-
-            <p className="text-2xl">
-
-              {profit.total_profit.toLocaleString()}
-
-            </p>
-
+            <p>{Number(profit.total_profit).toLocaleString()}</p>
           </div>
 
-          <div className="bg-blue-100 rounded-xl p-5 shadow">
-
+          <div className="bg-blue-100 rounded-xl p-5">
             <h3>💰 هزینه خرید</h3>
-
-            <p className="text-2xl">
-
-              {profit.total_purchase.toLocaleString()}
-
-            </p>
-
+            <p>{Number(profit.total_purchase).toLocaleString()}</p>
           </div>
 
-          <div className="bg-yellow-100 rounded-xl p-5 shadow">
-
+          <div className="bg-yellow-100 rounded-xl p-5">
             <h3>📈 حاشیه سود</h3>
-
-            <p className="text-2xl">
-
-              {profit.margin_percent}%
-
-            </p>
-
+            <p>{profit.margin_percent}%</p>
           </div>
 
-          <div className="bg-purple-100 rounded-xl p-5 shadow">
-
-            <h3>📊 فروش کل دیتابیس</h3>
-
-            <p className="text-2xl">
-
-              {profit.total_sales.toLocaleString()}
-
-            </p>
-
+          <div className="bg-purple-100 rounded-xl p-5">
+            <h3>📊 فروش دیتابیس</h3>
+            <p>{Number(profit.total_sales).toLocaleString()}</p>
           </div>
 
         </div>
 
       )}
 
-      <div className="bg-white rounded-xl shadow p-5 mb-10">
+      <div className="bg-white rounded-xl shadow p-5 mb-8">
 
         <input
-
           type="file"
-
           accept=".xlsx,.xls"
-
           onChange={(e) =>
-
             setFile(e.target.files[0])
-
           }
-
         />
 
         <button
-
           onClick={handleUpload}
-
           className="ml-4 px-5 py-2 rounded bg-blue-600 text-white"
-
         >
-
           Upload Excel
-
         </button>
 
       </div>
-
-      <div className="grid grid-cols-2 gap-8 mb-10">
+<div className="grid grid-cols-2 gap-8 mb-8">
 
         <div className="bg-white rounded-xl shadow p-5">
 
           <h2 className="font-bold mb-4">
-
             📊 فروش فایل‌ها
-
           </h2>
 
           <div style={{ width: "100%", height: 300 }}>
-
             <ResponsiveContainer>
-
               <BarChart data={chartData}>
-
                 <CartesianGrid strokeDasharray="3 3" />
-
                 <XAxis dataKey="name" />
-
                 <YAxis />
-
                 <Tooltip />
-
                 <Bar dataKey="sales" />
-
               </BarChart>
-
             </ResponsiveContainer>
-
           </div>
 
         </div>
@@ -333,44 +280,31 @@ return (
         <div className="bg-white rounded-xl shadow p-5">
 
           <h2 className="font-bold mb-4">
-
             📈 فروش ماهانه
-
           </h2>
 
           <div style={{ width: "100%", height: 300 }}>
-
             <ResponsiveContainer>
-
               <BarChart data={monthlySales}>
-
                 <CartesianGrid strokeDasharray="3 3" />
-
                 <XAxis dataKey="month" />
-
                 <YAxis />
-
                 <Tooltip />
-
                 <Bar dataKey="sales" />
-
               </BarChart>
-
             </ResponsiveContainer>
-
           </div>
 
         </div>
 
       </div>
-<div className="grid grid-cols-2 gap-8 mb-10">
+
+      <div className="grid grid-cols-2 gap-8 mb-8">
 
         <div className="bg-white rounded-xl shadow p-5">
 
           <h2 className="text-xl font-bold mb-4">
-
             🏆 مشتریان برتر
-
           </h2>
 
           {topCustomers.map((item, index) => (
@@ -380,11 +314,7 @@ return (
               className="flex justify-between border-b py-2"
             >
               <span>{item.customer}</span>
-
-              <span>
-                {Number(item.sales).toLocaleString()}
-              </span>
-
+              <span>{Number(item.sales).toLocaleString()}</span>
             </div>
 
           ))}
@@ -394,9 +324,7 @@ return (
         <div className="bg-white rounded-xl shadow p-5">
 
           <h2 className="text-xl font-bold mb-4">
-
             📦 محصولات برتر
-
           </h2>
 
           {topProducts.map((item, index) => (
@@ -406,11 +334,7 @@ return (
               className="flex justify-between border-b py-2"
             >
               <span>{item.product}</span>
-
-              <span>
-                {Number(item.sales).toLocaleString()}
-              </span>
-
+              <span>{Number(item.sales).toLocaleString()}</span>
             </div>
 
           ))}
@@ -419,50 +343,40 @@ return (
 
       </div>
 
-      <div className="bg-white rounded-xl shadow p-5">
+      <div className="bg-white rounded-xl shadow p-5 mb-8">
 
-        <h2 className="text-xl font-bold mb-5">
-
-          📄 فایل‌های آپلود شده
-
+        <h2 className="text-xl font-bold mb-4">
+          🤖 BotNara AI
         </h2>
 
-        {uploads.map((item) => (
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="مثلاً: پرفروش‌ترین محصول چیست؟"
+          className="border rounded w-full p-3 mb-4"
+        />
 
-          <div
-            key={item.id}
-            className="border rounded-lg p-4 mb-4"
-          >
+        <button
+          onClick={askBot}
+          className="px-5 py-2 rounded bg-blue-600 text-white"
+        >
+          {loading ? "درحال پردازش..." : "ارسال"}
+        </button>
 
-            <p>📄 {item.filename}</p>
+        {answer && (
 
-            <p>
-              💰 فروش:
-              {" "}
-              {Number(item.total_sales).toLocaleString()}
-            </p>
+          <div className="mt-6 rounded border bg-gray-100 p-4">
 
-            <p>
-              🛒 سفارش:
-              {" "}
-              {item.total_orders}
-            </p>
+            <strong>BotNara:</strong>
 
-            <p>
-              👤 مشتری برتر:
-              {" "}
-              {item.top_customer}
-            </p>
-
-            <p>
-              📦 محصول برتر:
-              {" "}
-              {item.top_product}
+            <p className="mt-2">
+              {answer}
             </p>
 
           </div>
 
-        ))}
+        )}
 
       </div>
 
