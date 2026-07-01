@@ -1,48 +1,57 @@
-from app.services.analytics_service import get_top_products
-from app.services.analytics_service import get_top_customers
-from app.services.analytics_service import get_monthly_sales
+from app.services.intent_service import detect_intent
+from app.services.openai_service import ask_gpt
+from app.services.analytics_service import (
+    get_top_products,
+    get_worst_product,
+)
 
 
-def ask_bot(message: str):
+def process_message(message: str):
 
-    text = message.lower()
+    intent = detect_intent(message)
 
-    if "محصول" in text:
+    if intent == "TOP_PRODUCT":
 
-        products = get_top_products()
+        top = get_top_products()[0]
 
-        if products:
-            p = products[0]
+        prompt = f"""
+کاربر پرسیده:
+{message}
 
-            return (
-                f"پرفروش‌ترین محصول "
-                f"{p['product']} "
-                f"با فروش "
-                f"{p['sales']:,.0f} تومان است."
-            )
+پرفروش‌ترین محصول:
 
-    if "مشتری" in text:
+نام محصول:
+{top["product"]}
 
-        customers = get_top_customers()
+مبلغ فروش:
+{top["sales"]}
 
-        if customers:
-            c = customers[0]
+در نقش یک مشاور حرفه‌ای کسب‌وکار،
+خیلی کوتاه و فارسی پاسخ بده.
+"""
 
-            return (
-                f"بهترین مشتری "
-                f"{c['customer']} "
-                f"با خرید "
-                f"{c['sales']:,.0f} تومان است."
-            )
+        return ask_gpt(prompt)
 
-    if "ماه" in text:
+    if intent == "WORST_PRODUCT":
 
-        months = get_monthly_sales()
+        worst = get_worst_product()
 
-        return months
+        prompt = f"""
+کاربر پرسیده:
+{message}
 
-    return (
-        "متوجه سؤال نشدم.\n"
-        "مثلاً بپرس:\n"
-        "پرفروش‌ترین محصول چیست؟"
-    )
+کم‌فروش‌ترین محصول:
+
+نام محصول:
+{worst["product"]}
+
+مبلغ فروش:
+{worst["sales"]}
+
+در نقش مشاور کسب‌وکار،
+راهکار کوتاه ارائه بده.
+"""
+
+        return ask_gpt(prompt)
+
+    return ask_gpt(message)
