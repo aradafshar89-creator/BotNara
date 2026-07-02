@@ -1,5 +1,8 @@
 "use client";
 
+import AdvisorCard from "../components/AdvisorCard";
+import ProfitCards from "../components/ProfitCards";
+import DashboardCards from "../components/DashboardCards";
 import { useEffect, useState } from "react";
 
 import {
@@ -19,6 +22,7 @@ export default function Home() {
   const [topCustomers, setTopCustomers] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   const [profit, setProfit] = useState(null);
+  const [advice, setAdvice] = useState([]);
 
   const [file, setFile] = useState(null);
 
@@ -76,6 +80,25 @@ export default function Home() {
     }
 
   };
+const loadAdvisor = async () => {
+
+  try {
+
+    const res = await fetch(
+      "http://localhost:8000/api/advisor"
+    );
+
+    const data = await res.json();
+
+    setAdvice(data.advice);
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+};
 const askBot = async () => {
 
     if (!question.trim()) return;
@@ -116,6 +139,7 @@ const askBot = async () => {
   useEffect(() => {
 
     loadData();
+    loadAdvisor();
 
   }, []);
 
@@ -179,63 +203,15 @@ const askBot = async () => {
         🚀 BotNara Dashboard
       </h1>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
+<DashboardCards
+  uploads={uploads}
+  totalSales={totalSales}
+  totalOrders={totalOrders}
+/>
 
-        <div className="bg-white rounded-xl shadow p-5">
-          <h3 className="font-bold">📁 فایل‌ها</h3>
-          <p className="text-3xl">{uploads.length}</p>
-        </div>
+<ProfitCards profit={profit} />
 
-        <div className="bg-white rounded-xl shadow p-5">
-          <h3 className="font-bold">💰 فروش کل</h3>
-          <p className="text-3xl">
-            {Number(totalSales).toLocaleString()}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow p-5">
-          <h3 className="font-bold">🛒 سفارش‌ها</h3>
-          <p className="text-3xl">{totalOrders}</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow p-5">
-          <h3 className="font-bold">
-            👤 مشتری برتر
-          </h3>
-          <p className="text-xl">
-            {uploads[0]?.top_customer || "-"}
-          </p>
-        </div>
-
-      </div>
-
-      {profit && (
-
-        <div className="grid grid-cols-4 gap-4 mb-8">
-
-          <div className="bg-green-100 rounded-xl p-5">
-            <h3>💵 سود کل</h3>
-            <p>{Number(profit.total_profit).toLocaleString()}</p>
-          </div>
-
-          <div className="bg-blue-100 rounded-xl p-5">
-            <h3>💰 هزینه خرید</h3>
-            <p>{Number(profit.total_purchase).toLocaleString()}</p>
-          </div>
-
-          <div className="bg-yellow-100 rounded-xl p-5">
-            <h3>📈 حاشیه سود</h3>
-            <p>{profit.margin_percent}%</p>
-          </div>
-
-          <div className="bg-purple-100 rounded-xl p-5">
-            <h3>📊 فروش دیتابیس</h3>
-            <p>{Number(profit.total_sales).toLocaleString()}</p>
-          </div>
-
-        </div>
-
-      )}
+<AdvisorCard advice={advice} />
 
       <div className="bg-white rounded-xl shadow p-5 mb-8">
 

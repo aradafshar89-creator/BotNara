@@ -78,23 +78,35 @@ def get_top_products(limit=10):
         }
         for name, amount in result[:limit]
     ]
-
 def get_profit_summary():
 
     db = SessionLocal()
 
     sales = db.query(Sale).all()
 
-    total_sales = sum((s.sale_amount or 0) for s in sales)
+    total_sales = sum(
+        (s.sale_amount or 0)
+        for s in sales
+    )
 
-    total_purchase = sum((s.purchase_price or 0) for s in sales)
+    total_purchase = sum(
+        (s.purchase_price or 0) * (s.quantity or 1)
+        for s in sales
+    )
 
-    total_profit = sum((s.profit or 0) for s in sales)
+    total_profit = sum(
+        (s.sale_amount or 0) -
+        ((s.purchase_price or 0) * (s.quantity or 1))
+        for s in sales
+    )
 
     margin = 0
 
     if total_sales > 0:
-        margin = round((total_profit / total_sales) * 100, 2)
+        margin = round(
+            (total_profit / total_sales) * 100,
+            2
+        )
 
     db.close()
 
@@ -104,6 +116,7 @@ def get_profit_summary():
         "total_profit": total_profit,
         "margin_percent": margin
     }
+
 def get_top_products(limit=10):
 
     db = SessionLocal()
