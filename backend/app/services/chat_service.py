@@ -1,57 +1,31 @@
-from app.services.intent_service import detect_intent
+from app.services.context_service import build_company_context
+
 from app.services.openai_service import ask_gpt
-from app.services.analytics_service import (
-    get_top_products,
-    get_worst_product,
-)
+from app.services.openai_service import ask_gpt
 
 
-def process_message(message: str):
+def chat_with_database(question):
 
-    intent = detect_intent(message)
+    context = build_company_context()
 
-    if intent == "TOP_PRODUCT":
 
-        top = get_top_products()[0]
+    prompt = f"""
+تو دستیار مدیریتی BotNara هستی.
 
-        prompt = f"""
-کاربر پرسیده:
-{message}
+اطلاعات شرکت:
 
-پرفروش‌ترین محصول:
+Company Data:
 
-نام محصول:
-{top["product"]}
+{context}
 
-مبلغ فروش:
-{top["sales"]}
+سوال مدیر:
 
-در نقش یک مشاور حرفه‌ای کسب‌وکار،
-خیلی کوتاه و فارسی پاسخ بده.
+{question}
+
+فقط بر اساس اطلاعات بالا جواب بده.
+
+اگر اطلاعات کافی نبود بگو:
+"اطلاعات کافی در دیتابیس وجود ندارد."
 """
 
-        return ask_gpt(prompt)
-
-    if intent == "WORST_PRODUCT":
-
-        worst = get_worst_product()
-
-        prompt = f"""
-کاربر پرسیده:
-{message}
-
-کم‌فروش‌ترین محصول:
-
-نام محصول:
-{worst["product"]}
-
-مبلغ فروش:
-{worst["sales"]}
-
-در نقش مشاور کسب‌وکار،
-راهکار کوتاه ارائه بده.
-"""
-
-        return ask_gpt(prompt)
-
-    return ask_gpt(message)
+    return ask_gpt(prompt)

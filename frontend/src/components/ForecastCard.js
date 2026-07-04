@@ -1,4 +1,4 @@
-export default function AdvisorCard({ advice }) {
+export default function ForecastCard({ forecast }) {
 
   return (
 
@@ -6,17 +6,17 @@ export default function AdvisorCard({ advice }) {
 
       <h2 className="text-xl font-bold mb-4">
 
-        🧠 پیشنهادهای امروز BotNara
+        📈 پیش‌بینی فروش
 
       </h2>
 
       <pre className="whitespace-pre-wrap text-gray-700">
 
-        {advice}
+        {forecast}
 
-     </pre>
+      </pre>
 
-   </div>
+    </div>
 
   );
 

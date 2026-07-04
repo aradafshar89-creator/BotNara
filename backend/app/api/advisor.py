@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.services.advisor_service import generate_business_advice
+from app.services.ai_advisor import generate_ai_advice
 
 router = APIRouter()
 
@@ -9,5 +9,7 @@ router = APIRouter()
 def advisor():
 
     return {
-        "advice": generate_business_advice()
+
+        "advice": generate_ai_advice()
+
     }

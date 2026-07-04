@@ -1,5 +1,6 @@
 "use client";
 
+import ForecastCard from "../components/ForecastCard";
 import AdvisorCard from "../components/AdvisorCard";
 import ProfitCards from "../components/ProfitCards";
 import DashboardCards from "../components/DashboardCards";
@@ -23,6 +24,7 @@ export default function Home() {
   const [topProducts, setTopProducts] = useState([]);
   const [profit, setProfit] = useState(null);
   const [advice, setAdvice] = useState([]);
+  const [forecast, setForecast] = useState("");
 
   const [file, setFile] = useState(null);
 
@@ -212,6 +214,8 @@ const askBot = async () => {
 <ProfitCards profit={profit} />
 
 <AdvisorCard advice={advice} />
+
+<ForecastCard forecast={forecast} />
 
       <div className="bg-white rounded-xl shadow p-5 mb-8">
 
