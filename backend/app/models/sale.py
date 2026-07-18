@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, Float, String, Date
+from sqlalchemy import ForeignKey
+from sqlalchemy import Column, Integer, Float, String, Date, ForeignKey
 from app.models.upload import Base
 
 
@@ -24,3 +25,5 @@ class Sale(Base):
     salesperson = Column(String, nullable=True)
 
     sale_date = Column(Date, nullable=True)
+
+    company_id = Column(Integer, ForeignKey("companies.id"))

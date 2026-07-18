@@ -1,8 +1,9 @@
+from sqlalchemy import ForeignKey
+from app.db.database import Base
 from sqlalchemy import Column, Integer, Float, String, DateTime
-from sqlalchemy.orm import declarative_base
 from datetime import datetime
 
-Base = declarative_base()
+
 
 class Upload(Base):
     __tablename__ = "uploads"
@@ -17,3 +18,4 @@ class Upload(Base):
 
     top_customer = Column(String)
     top_product = Column(String)
+    company_id = Column(Integer, ForeignKey("companies.id"))

@@ -1,18 +1,20 @@
-from fastapi import APIRouter, UploadFile, File
+from app.models.sale import Sale
+from app.models.upload import Upload
+from fastapi import APIRouter, UploadFile, File, Depends
+from sqlalchemy.orm import Session
 import pandas as pd
 import tempfile
 
-from app.db.database import SessionLocal
-from app.models.upload import Upload
-from app.models.sale import Sale
-
+from app.db.database import get_db
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 router = APIRouter()
 
 
 @router.get("/upload")
-def get_uploads():
-    db = SessionLocal( )
-    
+def get_uploads(
+    db: Session = Depends(get_db),
+):
     uploads = db.query(Upload).order_by(
         Upload.id.desc()
     ).all()
@@ -45,7 +47,11 @@ def find_column(columns, keywords):
 
     return None
 @router.post("/upload")
-async def upload_excel(file: UploadFile = File(...)):
+async def upload_excel(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
         content = await file.read()
         tmp.write(content)
@@ -148,7 +154,6 @@ async def upload_excel(file: UploadFile = File(...)):
         .idxmax()
     )
 
-    db = SessionLocal()
 
     for _, row in df.iterrows():
 
@@ -157,7 +162,8 @@ async def upload_excel(file: UploadFile = File(...)):
             product=str(row[product_col]),
             sale_amount=float(row[amount_col]),
             quantity=1,
-            sale_date=pd.to_datetime(row[date_col]).date() if date_col else None
+            sale_date=pd.to_datetime(row[date_col]).date() if date_col else None,
+            company_id=current_user.company_id,
         )
 
         db.add(sale)
@@ -166,7 +172,8 @@ async def upload_excel(file: UploadFile = File(...)):
         total_sales=total_sales,
         total_orders=total_orders,
         top_customer=top_customer,
-        top_product=top_product
+        top_product=top_product,
+        company_id=current_user.company_id,
     )
 
     db.add(upload)
@@ -183,10 +190,9 @@ async def upload_excel(file: UploadFile = File(...)):
     "top_product": top_product
     }
 @router.get("/analytics/monthly-sales")
-def monthly_sales():
-
-    db = SessionLocal()
-
+def monthly_sales(
+    db: Session = Depends(get_db),
+):
     sales = db.query(Sale).all()
 
     result = {}

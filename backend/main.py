@@ -1,3 +1,4 @@
+from app.auth.router import router as auth_router
 from app.api.forecast import router as forecast_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +49,8 @@ app.include_router(
     forecast_router,
     prefix="/api"
 )
+
+app.include_router(auth_router)
 
 @app.get("/")
 def root():
